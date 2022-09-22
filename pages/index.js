@@ -1,23 +1,30 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useState } from "react";
 import { Button, Card } from "react-bootstrap";
 import styles from "../styles/Home.module.css";
 
 export default function Home({ data }) {
-  let products = data?.products?.map((product) => {
+
+  const [visible, setVisible] = useState(4)
+
+const showMoreProduct = () => { 
+   setVisible((preValue) => preValue + 4);
+
+ }
+
+
+  let products = data?.products?.slice(0, visible).map((product) => {
     return (
       <Card style={{ width: "18rem", margin: "8px" }} key={product.id}>
+        <Link href={'/product/[id]'} as={`/product/${product.id}`}>
         <Card.Img variant="top" src={product.thumbnail} />
+        </Link>
         <Card.Body>
           <Card.Title>{product.title}</Card.Title>
           <Card.Title>₹ {product.price}</Card.Title>
           <Card.Text>{product.description}</Card.Text>
-          <Button variant="primary">add</Button>
-          <div className="card-action">
-             <Link href={'/product/[id]'} as={`/product/${product.id}`}>
-              <a>View Product</a>
-              </Link>
-          </div>
+          <Button variant="primary"  onClick={()=>AddToCart()}>add</Button>
         </Card.Body>
       </Card>
     );
@@ -41,6 +48,7 @@ export default function Home({ data }) {
       >
         {products}
       </div>
+      <button onClick={showMoreProduct}>Load More</button>
     </div>
   );
 }
@@ -52,4 +60,23 @@ export async function getServerSideProps() {
 
   // Pass data to the page via props
   return { props: { data } };
+}
+
+const AddToCart = async ()=>{
+  const res =  await fetch(`${baseUrl}/api/cart`,{
+    method:"PUT",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":cookie.token
+    },
+    body:JSON.stringify({
+     quantity,
+     productId:product._id
+    })
+  })
+const res2 = await res.json()
+if(res2.error){
+  console.log("error")
+}
+console.log("added")
 }
